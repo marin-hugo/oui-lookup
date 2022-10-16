@@ -1,0 +1,37 @@
+#!/bin/bash
+
+CLN_MAC=""
+
+#Print the usage of this program
+usage() {
+    echo "Usage: $0 <mac address>";
+
+}
+
+#Parse the provided MAC address
+parse_mac() {
+    MAC=$1;
+    if [ $MAC=~^\([0-9A-Fa-f][0-9A-Fa-f]:\)\{5\}[0-9A-Fa-f][0-9A-Fa-f]$ ]; then
+        CLN_MAC=${MAC//:/};
+    elif [ $MAC=~^\([0-9A-Fa-f][0-9A-Fa-f]-\)\{5\}[0-9A-Fa-f][0-9A-Fa-f]$ ]; then
+        CLN_MAC=${MAC//-/};
+    fi
+    CLN_MAC=${CLN_MAC:0:6};
+}
+
+#Lookup the provided MAC address in a oui table
+lookup_oui() {
+    OUI_TXT="/usr/share/ieee-data/oui.txt"
+    echo -n "$1 - " && (grep -m 1 $1 $OUI_TXT | cut -z -f 3)
+    if [ $? -eq 1 ]; then
+        echo "$1 - Not found"
+    fi
+}
+
+
+if [ $# -gt 1 ]; then
+    usage;
+    exit;
+fi
+parse_mac $1
+lookup_oui $CLN_MAC
